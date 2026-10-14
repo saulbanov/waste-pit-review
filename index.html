@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Pit Photo Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Public+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: one working surface. The aerial photo is the large square on the left, the pit's registry facts and the five verdict keys sit beside it, and the row of progress meters stays pinned above. */
+:root{
+  --bg:#f2f4f1; --panel:#fafbf9; --ink:#151a1a; --mut:#566260; --line:#d3d9d5;
+  --accent:#0e5e59; --accent-ink:#ffffff; --warn:#8f4d00; --ok:#1c6a31; --photo:#0b0e0e;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1312; --panel:#161b1a; --ink:#e8edeb; --mut:#97a29e; --line:#2a322f;
+  --accent:#5cc3ba; --accent-ink:#06211f; --warn:#e4a34e; --ok:#80cf93; --photo:#050707; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1312; --panel:#161b1a; --ink:#e8edeb; --mut:#97a29e; --line:#2a322f;
+  --accent:#5cc3ba; --accent-ink:#06211f; --warn:#e4a34e; --ok:#80cf93; --photo:#050707; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px;padding-block:0 104px}
+.app{max-width:1180px;margin-inline:auto}
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+header.bar h1{font-size:17px;font-weight:700;margin:0;letter-spacing:.01em}
+label.name{display:flex;gap:8px;align-items:center;color:var(--mut)}
+input,textarea,button{font:inherit;color:var(--ink)}
+input#reviewer{width:11rem;padding:5px 8px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+.meters{display:flex;gap:18px;flex-wrap:wrap}
+.meter{min-width:130px;cursor:pointer;background:none;border:0;padding:0;text-align:left}
+.meter b{font-weight:600}
+.meter .track{height:5px;background:var(--line);border-radius:3px;margin-top:3px;overflow:hidden}
+.meter .track i{display:block;height:100%;width:0;background:var(--accent)}
+#savestate{margin-left:auto;font-size:13px;color:var(--mut)}
+#savestate.bad{color:var(--warn);font-weight:600}
+#banner{margin-top:10px;padding:9px 12px;border:1px solid var(--warn);border-radius:6px;color:var(--warn)}
+details.howto{margin-top:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:8px 14px}
+details.howto summary{cursor:pointer;font-weight:600}
+details.howto p{margin:.5em 0;max-width:72ch}
+details.howto dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:.6em 0}
+details.howto dt{font-family:var(--mono);color:var(--accent)}
+details.howto dd{margin:0}
+.stage{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;margin-top:14px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.dock{position:fixed;inset-inline:0;bottom:0;z-index:6;background:var(--panel);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.dockin{max-width:1180px;margin-inline:auto;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.dock button{min-height:44px;padding:8px 18px;font-weight:600;white-space:nowrap}
+.dock button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dock #pager{flex:1;text-align:center;color:var(--mut);min-width:9rem;white-space:nowrap}
+@media (hover:none){.keys{display:none}}
+@media (max-width:820px){input,textarea{font-size:16px}#verdicts button{min-height:44px;padding:8px 14px}body{padding-block:0 124px}.dock button{padding:8px 12px;font-size:14px}}
+@media (max-width:560px){.dock #pager{order:-1;flex-basis:100%;min-width:0}.dock button{flex:0 1 auto}.dock #nextUnBtn{flex:1}}
+button{padding:6px 12px;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--photo);border:1px solid var(--line);overflow:auto;cursor:zoom-in}
+.frame.zoomed{cursor:zoom-out}
+.inner{position:relative;width:100%;height:100%}
+.frame.zoomed .inner{width:200%;height:200%}
+.inner img,.inner svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.inner svg{pointer-events:none}
+.missing{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#c4cccb}
+figcaption{color:var(--mut);margin-top:5px;font-size:13px}
+figure{margin:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+dl.facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0}
+dl.facts dt{color:var(--mut)}
+dl.facts dd{margin:0;overflow-wrap:anywhere}
+dl.facts dd.reg{font-family:var(--mono);font-size:17px}
+.note{margin:10px 0 0;color:var(--warn)}
+a.earth{display:inline-block;margin-top:10px;color:var(--accent);font-weight:600}
+#verdicts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px}
+#verdicts button{display:flex;gap:7px;align-items:center;min-width:0}
+#verdicts button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#verdicts button.next{margin-left:auto;background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);border-radius:3px;padding:0 5px;background:var(--bg);color:var(--ink)}
+#verdicts button.on kbd{background:transparent;color:var(--accent-ink);border-color:var(--accent-ink)}
+#verdicts button.next kbd{background:transparent;color:var(--bg);border-color:var(--bg)}
+textarea#notes{width:100%;min-height:58px;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--bg)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.tools small{color:var(--mut)}
+#csvbox{width:100%;min-height:90px;margin-top:8px;font:12px var(--mono)}
+.keys{margin-top:14px;color:var(--mut);font-size:13px}
+footer{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+footer p{margin:.4em 0;max-width:80ch}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <h1>Pit Photo Review</h1>
+    <label class="name">Your name <input id="reviewer" autocomplete="name" placeholder="first and last"></label>
+    <div class="meters"><button class="meter" id="meter-A" data-p="A" type="button"></button><button class="meter" id="meter-B" data-p="B" type="button"></button></div>
+    <div id="savestate"></div>
+  </header>
+  <div id="banner" hidden></div>
+
+  <details class="howto" id="howto" open>
+    <summary>How to review (read first)</summary>
+    <p>Each pit is a registration filed with the Railroad Commission. Look at the aerial photo and say whether a pit is visible at the registered point, which is the crosshair at the centre. The yellow ring marks 60 m around it. You are recording what the photograph shows and nothing else: not what the pit holds, whether it is lined, or how it is run.</p>
+    <dl>
+      <dt>1 pit</dt><dd>A pit is visible inside the ring.</dd>
+      <dt>2 pit off ring</dt><dd>A pit is visible outside the ring. Say which direction and roughly how far in the notes.</dd>
+      <dt>3 pad</dt><dd>Cleared or disturbed ground, but no pit you can make out.</dd>
+      <dt>4 none</dt><dd>Undisturbed ground.</dd>
+      <dt>5 unclear</dt><dd>Cloud, shadow or a photo too poor to tell.</dd>
+    </dl>
+    <p>The photos are USGS aerial photographs, taken in 2022 where we have checked, and every registration here took effect in July 2025 or later. A pit built after the photo will not show, so a pad or none does not prove a pit is absent now. Pits of 45 to 100 barrels are mostly too small to see at this resolution. When in doubt, use <b>unclear</b>. The Google Earth link under each pit opens newer imagery.</p>
+  </details>
+
+  <div class="stage">
+    <section aria-label="Aerial photo">
+      <figure>
+        <div class="frame" id="frame"><div class="inner" id="inner"></div></div>
+        <figcaption id="cap"></figcaption>
+      </figure>
+    </section>
+    <section class="panel" aria-label="Pit and verdict">
+      <dl class="facts" id="facts"></dl>
+      <div class="note" id="notice" hidden></div>
+      <a class="earth" id="earth" target="_blank" rel="noopener noreferrer">Open this location in Google Earth</a>
+      <div id="verdicts"></div>
+      <textarea id="notes" placeholder="Notes (optional)"></textarea>
+      <div class="tools">
+        <button id="dlBtn" type="button" hidden>Download my verdicts (CSV)</button>
+        <button id="copyBtn" type="button">Copy my verdicts as CSV</button>
+        <button id="retryBtn" type="button" hidden>Retry saving</button>
+        <small id="toolmsg"></small>
+      </div>
+      <textarea id="csvbox" readonly hidden></textarea>
+      <div class="keys"><kbd>1</kbd>&ndash;<kbd>5</kbd> verdict &nbsp; <kbd>Space</kbd> next unreviewed &nbsp; <kbd>J</kbd>/<kbd>K</kbd> or arrows back and forward &nbsp; <kbd>N</kbd> notes &nbsp; <kbd>R</kbd> ring &nbsp; Click the photo to zoom.</div>
+    </section>
+  </div>
+
+  <nav class="dock" aria-label="Move between pits">
+    <div class="dockin">
+      <button id="prevBtn" type="button" title="Key: J or left arrow">&larr; Back</button>
+      <span id="pager"></span>
+      <button id="nextBtn" type="button" title="Key: K or right arrow">Forward &rarr;</button>
+      <button id="nextUnBtn" class="primary" type="button" title="Key: Space or U">Next unreviewed</button>
+    </div>
+  </nav>
+
+  <footer>
+    <p id="prov"></p>
+    <p>Photos: USGS National Agricultural Imagery Program, public domain. Registry facts: Railroad Commission of Texas authorized-pits export obtained through an open-records request.</p>
+  </footer>
+</div>
+
+<script id="data" type="application/json">{"queue_build_id":"e94588b896b6-wide","asset":"RRC_ORR_AUTHORIZED_PITS_SCHED_A_B_2026-09-01","ring_m":60.0,"naip_ppm":1.4372978799856269,"pits":[{"reg":"AP02 00258","phase":"A","order":1,"op":"Denbury Onshore, LLC","county":"BRAZORIA","type":"ProducedWaterRecycling","cap":"36714.0","depth":"10.0","gw":"50.0","eff":"2026-04-24","lat":29.505528,"lon":-95.265944,"naip_date":"2022-09-14","have":true,"file":"chips/AP02_00258_naip.jpg"},{"reg":"AP02 00260","phase":"A","order":2,"op":"Denbury Onshore, LLC","county":"BRAZORIA","type":"ProducedWaterRecycling","cap":"41688.0","depth":"10.0","gw":"50.0","eff":"2026-04-24","lat":29.482528,"lon":-95.243,"naip_date":"2022-09-14","have":true,"file":"chips/AP02_00260_naip.jpg"},{"reg":"AP01 06384","phase":"A","order":3,"op":"ENSIGN NATURAL RESOURCES II LLC","county":"DE WITT","type":"CompletionWorkover","cap":"240000.0","depth":"20.0","gw":"200.0","eff":"2026-08-25","lat":29.289333,"lon":-97.341923,"naip_date":"2022-06-11","have":true,"file":"chips/AP01_06384_naip.jpg"},{"reg":"AP01 06385","phase":"A","order":4,"op":"ENSIGN NATURAL RESOURCES II LLC","county":"DE WITT","type":"CompletionWorkover","cap":"1000000.0","depth":"20.0","gw":"200.0","eff":"2026-08-25","lat":29.312958,"lon":-97.327203,"naip_date":"2022-06-11","have":true,"file":"chips/AP01_06385_naip.jpg"},{"reg":"AP01 06377","phase":"A","order":5,"op":"ENSIGN NATURAL RESOURCES II LLC","county":"GONZALES","type":"CompletionWorkover","cap":"350000.0","depth":"20.0","gw":"200.0","eff":"2026-08-25","lat":29.403721,"lon":-97.299516,"naip_date":"2022-06-11","have":true,"file":"chips/AP01_06377_naip.jpg"},{"reg":"AP01 06382","phase":"A","order":6,"op":"ENSIGN NATURAL RESOURCES II LLC","county":"GONZALES","type":"CompletionWorkover","cap":"240000.0","depth":"20.0","gw":"200.0","eff":"2026-08-25","lat":29.232985,"lon":-97.498227,"naip_date":"2022-07-11","have":true,"file":"chips/AP01_06382_naip.jpg"},{"reg":"AP01 05563","phase":"A","order":7,"op":"10 - Pampa District Office","county":"GRAY","type":"CompletionWorkover","cap":"100.0","depth":"10.0","gw":"365.0","eff":"2026-05-05","lat":35.442089,"lon":-100.818591,"naip_date":"2022-09-04","have":true,"file":"chips/AP01_05563_naip.jpg"},{"reg":"AP01 00542","phase":"A","order":8,"op":"BOYD & MCWILLIAMS ENERGY GROUP","county":"HASKELL","type":"CompletionWorkover","cap":"70.0","depth":"4.0","gw":"96.0","eff":"2025-07-30","lat":33.365515,"lon":-99.960633,"naip_date":"2022-09-03","have":true,"file":"chips/AP01_00542_naip.jpg"},{"reg":"AP01 01863","phase":"A","order":9,"op":"09 - Wichita Falls District Office","county":"KNOX","type":"CompletionWorkover","cap":"100.0","depth":"4.0","gw":"96.0","eff":"2025-10-16","lat":33.497143,"lon":-99.649921,"naip_date":"2022-08-26","have":true,"file":"chips/AP01_01863_naip.jpg"},{"reg":"AP01 01883","phase":"A","order":10,"op":"09 - Wichita Falls District Office","county":"KNOX","type":"CompletionWorkover","cap":"100.0","depth":"4.0","gw":"96.0","eff":"2025-10-22","lat":33.482785,"lon":-99.739961,"naip_date":"2022-08-26","have":true,"file":"chips/AP01_01883_naip.jpg"},{"reg":"AP02 00094","phase":"A","order":11,"op":"XTO Energy Inc.","county":"MARTIN","type":"ProducedWaterRecycling","cap":"500000.0","depth":"7.4","gw":"60.0","eff":"2025-11-24","lat":32.321805,"lon":-101.825591,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00094_naip.jpg"},{"reg":"AP02 00190","phase":"A","order":12,"op":"Deep Blue Operating I LLC","county":"MARTIN","type":"ProducedWaterRecycling","cap":"100000.0","depth":"1.0","gw":"60.0","eff":"2026-01-22","lat":32.284546,"lon":-101.937031,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00190_naip.jpg"},{"reg":"AP02 00191","phase":"A","order":13,"op":"Deep Blue Operating I LLC","county":"MARTIN","type":"ProducedWaterRecycling","cap":"40000.0","depth":"1.0","gw":"60.0","eff":"2026-01-22","lat":32.285071,"lon":-101.937372,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00191_naip.jpg"},{"reg":"AP02 00199","phase":"A","order":14,"op":"Deep Blue Operating I LLC","county":"MARTIN","type":"ProducedWaterRecycling","cap":"1192345.0","depth":"16.0","gw":"70.0","eff":"2026-01-22","lat":32.264056,"lon":-102.0236,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00199_naip.jpg"},{"reg":"AP01 01997","phase":"A","order":15,"op":"PIONEER NATURAL RES. USA, INC.","county":"MIDLAND","type":"Reserve","cap":"34437.0","depth":"8.0","gw":"69.0","eff":"2025-10-22","lat":31.929775,"lon":-101.997058,"naip_date":"2022-09-23","have":true,"file":"chips/AP01_01997_naip.jpg"},{"reg":"AP01 01998","phase":"A","order":16,"op":"PIONEER NATURAL RES. USA, INC.","county":"MIDLAND","type":"Reserve","cap":"13838.0","depth":"8.0","gw":"69.0","eff":"2025-10-22","lat":31.929912,"lon":-101.996316,"naip_date":"","have":true,"file":"chips/AP01_01998_naip.jpg"},{"reg":"AP01 02624","phase":"A","order":17,"op":"CONTINENTAL RESOURCES, INC.","county":"MIDLAND","type":"Reserve","cap":"50420.0","depth":"10.0","gw":"240.0","eff":"2026-01-19","lat":31.917511,"lon":-102.242843,"naip_date":"2022-09-26","have":true,"file":"chips/AP01_02624_naip.jpg"},{"reg":"AP02 00043","phase":"A","order":18,"op":"Pioneer Natural Res. USA, Inc.","county":"MIDLAND","type":"ProducedWaterRecycling","cap":"490000.0","depth":"19.0","gw":"60.0","eff":"2025-11-24","lat":31.890676,"lon":-101.987859,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00043_naip.jpg"},{"reg":"AP02 00053","phase":"A","order":19,"op":"Pioneer Natural Res. USA, Inc.","county":"MIDLAND","type":"ProducedWaterRecycling","cap":"514343.65","depth":"16.08","gw":"68.0","eff":"2025-11-24","lat":31.983023,"lon":-102.002577,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00053_naip.jpg"},{"reg":"AP01 01390","phase":"A","order":20,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-09-16","lat":33.897598,"lon":-98.800059,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_01390_naip.jpg"},{"reg":"AP01 06055","phase":"A","order":21,"op":"MASH OILFIELD SERVICES, LP","county":"YOUNG","type":"CompletionWorkover-30","cap":"85.0","depth":"8.0","gw":"367.0","eff":"2026-08-13","lat":33.189943,"lon":-98.558275,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_06055_naip.jpg"},{"reg":"AP01 03186","phase":"A","order":22,"op":"BORDERLINE OPERATING CORP.","county":"ARCHER","type":"Reserve","cap":"990.0","depth":"5.0","gw":"250.0","eff":"2025-12-31","lat":33.427296,"lon":-98.606165,"naip_date":"2022-07-03","have":true,"file":"chips/AP01_03186_naip.jpg"},{"reg":"AP01 04926","phase":"A","order":23,"op":"S.B. STREET OPERATING, INC.","county":"ARCHER","type":"CompletionWorkover","cap":"85.0","depth":"8.0","gw":"92.0","eff":"2026-05-12","lat":33.567756,"lon":-98.565789,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_04926_naip.jpg"},{"reg":"AP02 00322","phase":"A","order":24,"op":"Murphy Expl & Prod Co - USA","county":"ATASCOSA","type":"ProducedWaterRecycling","cap":"300000.0","depth":"7.545932","gw":"225.0","eff":"2025-11-20","lat":28.761366,"lon":-98.275932,"naip_date":"2022-05-16","have":true,"file":"chips/AP02_00322_naip.jpg"},{"reg":"AP01 05248","phase":"A","order":25,"op":"ROYAL PETROLEUM CO.","county":"CLAY","type":"Reserve","cap":"40.0","depth":"5.0","gw":"95.0","eff":"2026-05-11","lat":34.040292,"lon":-98.394657,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_05248_naip.jpg"},{"reg":"AP01 05251","phase":"A","order":26,"op":"ROYAL PETROLEUM CO.","county":"CLAY","type":"Reserve","cap":"40.0","depth":"5.0","gw":"95.0","eff":"2026-05-11","lat":34.040292,"lon":-98.394657,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_05251_naip.jpg"},{"reg":"AP01 01852","phase":"A","order":27,"op":"DIAMONDBACK E&P LLC","county":"ECTOR","type":"Reserve","cap":"125500.0","depth":"10.0","gw":"19.0","eff":"2025-10-15","lat":31.810179,"lon":-102.318164,"naip_date":"2022-09-26","have":true,"file":"chips/AP01_01852_naip.jpg"},{"reg":"AP01 01853","phase":"A","order":28,"op":"DIAMONDBACK E&P LLC","county":"ECTOR","type":"Reserve","cap":"125500.0","depth":"10.0","gw":"19.0","eff":"2025-10-15","lat":31.810532,"lon":-102.321409,"naip_date":"2022-09-26","have":true,"file":"chips/AP01_01853_naip.jpg"},{"reg":"AP01 06381","phase":"A","order":29,"op":"ENSIGN NATURAL RESOURCES II LLC","county":"GONZALES","type":"CompletionWorkover","cap":"300000.0","depth":"20.0","gw":"200.0","eff":"2026-08-25","lat":29.288587,"lon":-97.503144,"naip_date":"2022-06-11","have":true,"file":"chips/AP01_06381_naip.jpg"},{"reg":"AP02 00411","phase":"A","order":30,"op":"Verdun Oil & Gas LLC","county":"LIVE OAK","type":"ProducedWaterRecycling","cap":"412938.0","depth":"16.9","gw":"80.0","eff":"2026-04-06","lat":28.607389,"lon":-98.237456,"naip_date":"","have":true,"file":"chips/AP02_00411_naip.jpg"},{"reg":"AP01 02078","phase":"A","order":31,"op":"PIONEER NATURAL RES. USA, INC.","county":"MARTIN","type":"CompletionWorkover","cap":"13838.0","depth":"8.0","gw":"140.0","eff":"2025-10-28","lat":32.271121,"lon":-102.00784,"naip_date":"2022-09-23","have":true,"file":"chips/AP01_02078_naip.jpg"},{"reg":"AP01 06422","phase":"A","order":32,"op":"PIONEER NATURAL RES. USA, INC.","county":"MARTIN","type":"CompletionWorkover","cap":"13838.0","depth":"8.0","gw":"140.0","eff":"2025-10-28","lat":32.271121,"lon":-102.00784,"naip_date":"2022-09-23","have":true,"file":"chips/AP01_06422_naip.jpg"},{"reg":"AP02 00138","phase":"A","order":33,"op":"Deep Blue Operating I LLC","county":"MARTIN","type":"ProducedWaterRecycling","cap":"500000.0","depth":"12.0","gw":"60.0","eff":"2026-01-22","lat":32.357092,"lon":-101.859458,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00138_naip.jpg"},{"reg":"AP02 00031","phase":"A","order":34,"op":"Pioneer Natural Res. USA, Inc.","county":"MIDLAND","type":"ProducedWaterRecycling","cap":"483127.0","depth":"19.44","gw":"58.0","eff":"2025-11-24","lat":31.832017,"lon":-101.882153,"naip_date":"2022-09-23","have":true,"file":"chips/AP02_00031_naip.jpg"},{"reg":"AP02 00401","phase":"A","order":35,"op":"Verdun Oil & Gas LLC","county":"WASHINGTON","type":"ProducedWaterRecycling","cap":"658800.0","depth":"20.0","gw":"60.0","eff":"2026-04-06","lat":30.07,"lon":-96.585,"naip_date":"2022-06-12","have":true,"file":"chips/AP02_00401_naip.jpg"},{"reg":"AP01 00419","phase":"A","order":36,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-07-21","lat":34.14942,"lon":-98.647791,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_00419_naip.jpg"},{"reg":"AP01 00865","phase":"A","order":37,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-08-18","lat":33.8987,"lon":-98.90257,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_00865_naip.jpg"},{"reg":"AP01 06121","phase":"A","order":38,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover-30","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2026-08-17","lat":33.910815,"lon":-98.807475,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_06121_naip.jpg"},{"reg":"AP01 06123","phase":"A","order":39,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover-30","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2026-08-17","lat":33.893845,"lon":-98.824357,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_06123_naip.jpg"},{"reg":"AP01 06430","phase":"A","order":40,"op":"Waggoner Operating, L.L.C.","county":"WICHITA","type":"CompletionWorkover-30","cap":"100.0","depth":"10.0","gw":"90.0","eff":"2026-08-26","lat":34.035867,"lon":-98.934932,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_06430_naip.jpg"},{"reg":"AP01 06061","phase":"A","order":41,"op":"MASH OILFIELD SERVICES, LP","county":"YOUNG","type":"CompletionWorkover-30","cap":"85.0","depth":"8.0","gw":"117.0","eff":"2026-08-13","lat":33.003561,"lon":-98.662945,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_06061_naip.jpg"},{"reg":"AP01 06166","phase":"B","order":1,"op":"Railroad Commission of Texas","county":"ERATH","type":"CompletionWorkover","cap":"50.0","depth":"5.0","gw":"245.0","eff":"2026-06-25","lat":32.431906,"lon":-98.309592,"naip_date":"2022-07-10","have":true,"file":"chips/AP01_06166_naip.jpg"},{"reg":"AP01 02085","phase":"B","order":2,"op":"HIGHPEAK ENERGY HOLDINGS, LLC","county":"HOWARD","type":"CompletionWorkover","cap":"91.0","depth":"8.0","gw":"350.0","eff":"2025-10-20","lat":32.280953,"lon":-101.287066,"naip_date":"2022-09-08","have":true,"file":"chips/AP01_02085_naip.jpg"},{"reg":"AP01 02335","phase":"B","order":3,"op":"HIGHPEAK ENERGY HOLDINGS, LLC","county":"HOWARD","type":"CompletionWorkover","cap":"91.0","depth":"8.0","gw":"350.0","eff":"2025-10-01","lat":32.280953,"lon":-101.287066,"naip_date":"2022-09-08","have":true,"file":"chips/AP01_02335_naip.jpg"},{"reg":"AP01 02882","phase":"B","order":4,"op":"7B - Abilene District Office","county":"STEPHENS","type":"CompletionWorkover","cap":"295.0","depth":"5.0","gw":"95.0","eff":"2025-12-15","lat":32.584405,"lon":-98.86191,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_02882_naip.jpg"},{"reg":"AP01 02884","phase":"B","order":5,"op":"7B - Abilene District Office","county":"STEPHENS","type":"CompletionWorkover","cap":"295.0","depth":"5.0","gw":"95.0","eff":"2025-12-15","lat":32.582297,"lon":-98.863731,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_02884_naip.jpg"},{"reg":"AP01 05767","phase":"B","order":6,"op":"L.C.S. PRODUCTION COMPANY","county":"TAYLOR","type":"Reserve","cap":"8000.0","depth":"15.0","gw":"90.0","eff":"2026-08-11","lat":32.16292,"lon":-100.083364,"naip_date":"2022-07-26","have":true,"file":"chips/AP01_05767_naip.jpg"},{"reg":"AP01 05770","phase":"B","order":7,"op":"L.C.S. PRODUCTION COMPANY","county":"TAYLOR","type":"Reserve","cap":"8000.0","depth":"15.0","gw":"90.0","eff":"2026-08-11","lat":32.167831,"lon":-100.08213,"naip_date":"2022-07-26","have":true,"file":"chips/AP01_05770_naip.jpg"},{"reg":"AP01 01004","phase":"B","order":8,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-09-02","lat":33.910491,"lon":-98.646761,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_01004_naip.jpg"},{"reg":"AP01 01804","phase":"B","order":9,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-10-13","lat":33.856684,"lon":-98.825312,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_01804_naip.jpg"},{"reg":"AP01 02029","phase":"B","order":10,"op":"RUSK PRODUCTION INC.","county":"WICHITA","type":"CompletionWorkover","cap":"150.0","depth":"10.0","gw":"90.0","eff":"2025-10-23","lat":33.925084,"lon":-98.670576,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_02029_naip.jpg"},{"reg":"AP01 02134","phase":"B","order":11,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-10-13","lat":33.856684,"lon":-98.825312,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_02134_naip.jpg"},{"reg":"AP01 02424","phase":"B","order":12,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-10-09","lat":33.907725,"lon":-98.731536,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_02424_naip.jpg"},{"reg":"AP01 05508","phase":"B","order":13,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2026-06-12","lat":33.861085,"lon":-98.839708,"naip_date":"2022-07-02","have":true,"file":"chips/AP01_05508_naip.jpg"},{"reg":"AP01 00136","phase":"B","order":14,"op":"JDL OPERATING, LLC","county":"ARCHER","type":"CompletionWorkover","cap":"75.0","depth":"8.0","gw":"100.0","eff":"2025-07-14","lat":33.678458,"lon":-98.538946,"naip_date":"2022-07-04","have":true,"file":"chips/AP01_00136_naip.jpg"},{"reg":"AP01 00137","phase":"B","order":15,"op":"JDL OPERATING, LLC","county":"ARCHER","type":"CompletionWorkover","cap":"75.0","depth":"8.0","gw":"100.0","eff":"2025-07-14","lat":33.678458,"lon":-98.538946,"naip_date":"","have":true,"file":"chips/AP01_00137_naip.jpg"},{"reg":"AP01 02162","phase":"B","order":16,"op":"DENBURY ONSHORE, LLC","county":"BRAZORIA","type":"WaterCondensate","cap":"620.0","depth":"5.0","gw":"50.0","eff":"2025-10-27","lat":29.500678,"lon":-95.262769,"naip_date":"2022-09-14","have":true,"file":"chips/AP01_02162_naip.jpg"},{"reg":"AP01 01662","phase":"B","order":17,"op":"Magnetar Operating LLC","county":"BRAZOS","type":"Reserve","cap":"25000.0","depth":"8.0","gw":"743.0","eff":"2025-09-18","lat":30.369778,"lon":-96.147389,"naip_date":"2022-06-12","have":true,"file":"chips/AP01_01662_naip.jpg"},{"reg":"AP01 02163","phase":"B","order":18,"op":"DENBURY ONSHORE, LLC","county":"CHAMBERS","type":"WaterCondensate","cap":"620.0","depth":"5.0","gw":"50.0","eff":"2025-10-27","lat":29.69224,"lon":-94.505967,"naip_date":"","have":true,"file":"chips/AP01_02163_naip.jpg"},{"reg":"AP01 01813","phase":"B","order":19,"op":"LARGE OPERATING LLC","county":"GRAY","type":"MudCirculation","cap":"26.0","depth":"6.0","gw":"694.0","eff":"2025-10-14","lat":35.557328,"lon":-101.028755,"naip_date":"","have":true,"file":"chips/AP01_01813_naip.jpg"},{"reg":"AP01 06350","phase":"B","order":20,"op":"09 - Wichita Falls District Office","county":"JACK","type":"CompletionWorkover","cap":"100.0","depth":"4.0","gw":"246.0","eff":"2026-07-17","lat":33.137896,"lon":-98.418941,"naip_date":"","have":true,"file":"chips/AP01_06350_naip.jpg"},{"reg":"AP01 06353","phase":"B","order":21,"op":"09 - Wichita Falls District Office","county":"JACK","type":"CompletionWorkover","cap":"100.0","depth":"4.0","gw":"321.0","eff":"2026-07-17","lat":33.136341,"lon":-98.414673,"naip_date":"","have":true,"file":"chips/AP01_06353_naip.jpg"},{"reg":"AP01 06346","phase":"B","order":22,"op":"SOJOURNER DRILLING CORPORATION","county":"JONES","type":"MudCirculation","cap":"50.0","depth":"6.0","gw":"94.0","eff":"2026-06-10","lat":32.552289,"lon":-100.081982,"naip_date":"","have":true,"file":"chips/AP01_06346_naip.jpg"},{"reg":"AP01 04597","phase":"B","order":23,"op":"TEXLAND PETROLEUM, L.P.","county":"LUBBOCK","type":"CompletionWorkover","cap":"180.0","depth":"8.0","gw":"93.0","eff":"2026-04-21","lat":33.65585,"lon":-101.94634,"naip_date":"","have":true,"file":"chips/AP01_04597_naip.jpg"},{"reg":"AP01 04743","phase":"B","order":24,"op":"TEXLAND PETROLEUM, L.P.","county":"LUBBOCK","type":"CompletionWorkover","cap":"176.0","depth":"6.0","gw":"158.0","eff":"2026-04-29","lat":33.669928,"lon":-101.937769,"naip_date":"","have":true,"file":"chips/AP01_04743_naip.jpg"},{"reg":"AP01 05370","phase":"B","order":25,"op":"COMSTOCK OIL & GAS, LLC","county":"RUSK","type":"Reserve","cap":"25000.0","depth":"17.0","gw":"51.0","eff":"2026-07-07","lat":32.373779,"lon":-94.496825,"naip_date":"","have":true,"file":"chips/AP01_05370_naip.jpg"},{"reg":"AP01 00438","phase":"B","order":26,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-07-30","lat":33.867284,"lon":-98.833387,"naip_date":"","have":true,"file":"chips/AP01_00438_naip.jpg"},{"reg":"AP01 01666","phase":"B","order":27,"op":"RUSK PRODUCTION INC.","county":"WICHITA","type":"CompletionWorkover","cap":"100.0","depth":"10.0","gw":"90.0","eff":"2025-10-03","lat":33.928082,"lon":-98.747844,"naip_date":"","have":true,"file":"chips/AP01_01666_naip.jpg"},{"reg":"AP01 02066","phase":"B","order":28,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-10-23","lat":33.879122,"lon":-98.811333,"naip_date":"","have":true,"file":"chips/AP01_02066_naip.jpg"},{"reg":"AP01 02416","phase":"B","order":29,"op":"R2Q OPERATING LLC","county":"WICHITA","type":"CompletionWorkover","cap":"45.0","depth":"5.0","gw":"95.0","eff":"2025-10-31","lat":33.867377,"lon":-98.833433,"naip_date":"","have":true,"file":"chips/AP01_02416_naip.jpg"},{"reg":"AP01 06102","phase":"B","order":30,"op":"Waggoner Operating, L.L.C.","county":"WICHITA","type":"CompletionWorkover","cap":"100.0","depth":"10.0","gw":"90.0","eff":"2026-07-02","lat":34.045577,"lon":-98.92915,"naip_date":"","have":true,"file":"chips/AP01_06102_naip.jpg"},{"reg":"AP01 06288","phase":"B","order":31,"op":"Paloma Operating, LLC","county":"WILSON","type":"Reserve","cap":"1995.0","depth":"5.0","gw":"950.0","eff":"2026-08-20","lat":29.348635,"lon":-98.103709,"naip_date":"","have":true,"file":"chips/AP01_06288_naip.jpg"},{"reg":"AP01 06289","phase":"B","order":32,"op":"Paloma Operating, LLC","county":"WILSON","type":"MudCirculation","cap":"1995.0","depth":"5.0","gw":"950.0","eff":"2026-08-20","lat":29.348635,"lon":-98.103709,"naip_date":"","have":true,"file":"chips/AP01_06289_naip.jpg"},{"reg":"AP01 02598","phase":"B","order":33,"op":"RAY HERRING OPERATING CO., LLC","county":"YOUNG","type":"CompletionWorkover","cap":"50.0","depth":"4.0","gw":"96.0","eff":"2026-01-15","lat":33.266719,"lon":-98.447211,"naip_date":"","have":true,"file":"chips/AP01_02598_naip.jpg"},{"reg":"AP01 05014","phase":"B","order":34,"op":"SKY RESOURCES, INC.","county":"YOUNG","type":"CompletionWorkover","cap":"105.0","depth":"6.0","gw":"175.0","eff":"2026-04-01","lat":32.970645,"lon":-98.772302,"naip_date":"","have":true,"file":"chips/AP01_05014_naip.jpg"}],"provenance":"Built 2026-10-14T19:56:00Z by data/scripts/build_review_artifact.py in newsbot-master-plan (wiki/stories/tm-pit-map) from queue e94588b896b6-wide; asset RRC_ORR_AUTHORIZED_PITS_SCHED_A_B_2026-09-01; photos USGS NAIP; ring radius 60.0 m, the 90th percentile of 112 earlier recorded offsets between a registered point and the pit seen near it.","mode":"static","surface":"github-pages"}</script>
+<script>
+(function(){
+"use strict";
+var D = JSON.parse(document.getElementById("data").textContent);
+var P = D.pits, V = {}, idx = 0, ringOn = true, PH_TOTAL = {};
+P.forEach(function(q){PH_TOTAL[q.phase] = (PH_TOTAL[q.phase]||0) + 1});
+var db = null, uid = null, canWrite = null, nameWritten = "", chain = Promise.resolve();
+var $ = function(id){return document.getElementById(id)};
+var LS_V = "tmpit-art-"+D.queue_build_id, LS_NAME = "tmpit-reviewer";
+var CODES = {"1":"pit","2":"pit_off","3":"pad","4":"none","5":"unclear"};
+var LABEL = {pit:"pit","pit_off":"pit off ring",pad:"pad",none:"none",unclear:"unclear"};
+var NS = "http://www.w3.org/2000/svg";
+
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function el(tag, attrs, text){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e}
+function svgEl(tag, attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e}
+function reviewer(){return $("reviewer").value.trim()}
+function key(p){return p.reg.replace(/ /g,"_")}
+try{V = JSON.parse(lsGet(LS_V)||"{}")}catch(e){V={}}
+function persistLocal(){lsSet(LS_V, JSON.stringify(V))}
+
+/* photo overlay: crosshair at the registered point, 60 m ring, 100 m scale bar */
+function overlay(){
+  var size = 800, c = 400, ppm = D.naip_ppm, g = svgEl("g",{}), s = svgEl("svg",{viewBox:"0 0 800 800"});
+  if(D.ring_m != null){
+    var rg = svgEl("g",{"class":"ring"}); rg.style.display = ringOn ? "" : "none";
+    rg.appendChild(svgEl("circle",{cx:c,cy:c,r:D.ring_m*ppm,fill:"none",stroke:"#000","stroke-width":4,opacity:.55}));
+    rg.appendChild(svgEl("circle",{cx:c,cy:c,r:D.ring_m*ppm,fill:"none",stroke:"#ffe14d","stroke-width":2}));
+    g.appendChild(rg);
+  }
+  [["#000",3.5],["#ffe14d",1.5]].forEach(function(st){
+    g.appendChild(svgEl("path",{d:"M"+(c-12)+" "+c+"H"+(c-4)+"M"+(c+4)+" "+c+"H"+(c+12)+"M"+c+" "+(c-12)+"V"+(c-4)+"M"+c+" "+(c+4)+"V"+(c+12),stroke:st[0],"stroke-width":st[1],fill:"none"}));
+  });
+  var bw = 100*ppm, bx = 14, by = size-22;
+  g.appendChild(svgEl("rect",{x:bx-3,y:by-16,width:bw+6,height:26,fill:"#000",opacity:.55}));
+  g.appendChild(svgEl("path",{d:"M"+bx+" "+(by+4)+"H"+(bx+bw)+"M"+bx+" "+(by-2)+"V"+(by+4)+"M"+(bx+bw)+" "+(by-2)+"V"+(by+4),stroke:"#fff","stroke-width":2,fill:"none"}));
+  var t = svgEl("text",{x:bx,y:by-5,fill:"#fff","font-size":13,"font-family":"sans-serif"}); t.textContent="100 m"; g.appendChild(t);
+  s.appendChild(g); return s;
+}
+
+function renderPhoto(p){
+  var inner = $("inner"); inner.textContent = "";
+  if(p.have){
+    var img = el("img",{alt:"Aerial photo around the registered point of "+p.reg, src:p.file});
+    img.onerror = function(){inner.textContent=""; inner.appendChild(el("div",{"class":"missing"},"Photo not available"))};
+    inner.appendChild(img); inner.appendChild(overlay());
+  } else inner.appendChild(el("div",{"class":"missing"},"Photo not available"));
+  $("frame").classList.remove("zoomed");
+  var nx = P[(idx+1)%P.length]; if(nx && nx.have){var pre = new Image(); pre.src = nx.file}
+}
+
+function fact(dl, label, value, cls){dl.appendChild(el("dt",{},label)); dl.appendChild(el("dd",cls?{"class":cls}:{},value))}
+function render(){
+  var p = P[idx], v = V[p.reg];
+  $("pager").textContent = "Queue "+({A:1,B:2})[p.phase]+" \u00b7 pit "+p.order+" of "+PH_TOTAL[p.phase];
+  var dl = $("facts"); dl.textContent = "";
+  fact(dl,"Registration",p.reg,"reg"); fact(dl,"Operator",p.op); fact(dl,"County",p.county);
+  fact(dl,"Pit type",p.type); fact(dl,"Capacity",p.cap+" bbl"); fact(dl,"Depth",p.depth+" ft");
+  fact(dl,"Groundwater depth on the registration",p.gw+" ft"); fact(dl,"Effective",p.eff);
+  fact(dl,"Registered point",p.lat.toFixed(5)+", "+p.lon.toFixed(5));
+  var n = $("notice");
+  if(p.naip_date && p.eff && p.eff > p.naip_date){n.hidden=false; n.textContent="This registration took effect "+p.eff+", after the photo was taken ("+p.naip_date+"). A pit built since will not show."}
+  else n.hidden = true;
+  $("earth").href = "https://earth.google.com/web/@"+p.lat+","+p.lon+",0a,800d,35y,0h,0t,0r";
+  renderPhoto(p);
+  $("cap").textContent = "USGS NAIP aerial photo \u00b7 "+(p.naip_date?("flown "+p.naip_date):"flight date not looked up (2022 where checked)")+" \u00b7 ring = "+D.ring_m+" m";
+  var vb = $("verdicts"); vb.textContent = "";
+  Object.keys(CODES).forEach(function(k){
+    var c = CODES[k], b = el("button",{type:"button","class":(v&&v.verdict===c)?"on":"","aria-pressed":(v&&v.verdict===c)?"true":"false"});
+    b.appendChild(el("kbd",{},k)); b.appendChild(document.createTextNode(LABEL[c]));
+    b.onclick = function(){commit(c)}; vb.appendChild(b);
+  });
+  var nb = el("button",{"class":"next",type:"button",title:"Space, Enter or U"}); nb.appendChild(el("kbd",{},"Space")); nb.appendChild(document.createTextNode("Next unreviewed"));
+  nb.onclick = advance; vb.appendChild(nb);
+  var nt = $("notes"); nt.value = v ? v.notes : "";
+  nt.placeholder = (v && v.verdict==="pit_off") ? "Direction and rough distance of the pit from the ring centre" : "Notes (optional)";
+  renderMeters(); renderState();
+}
+
+function renderMeters(){
+  ["A","B"].forEach(function(ph){
+    var tot=0, done=0; P.forEach(function(p){if(p.phase===ph){tot++; if(V[p.reg]) done++}});
+    var m = $("meter-"+ph); m.textContent = "";
+    m.appendChild(el("b",{},"Queue "+({A:1,B:2})[ph]+": ")); m.appendChild(document.createTextNode(done+" of "+tot));
+    var tr = el("div",{"class":"track"}), i = el("i"); i.style.width = (tot?100*done/tot:0)+"%"; tr.appendChild(i); m.appendChild(tr);
+  });
+}
+
+function unsavedCount(){var n=0; for(var k in V){if(!V[k].saved) n++} return n}
+function setSave(kind, detail){
+  var s = $("savestate"); s.className = "";
+  if(kind==="saving") s.textContent = "Saving\u2026";
+  else if(kind==="saved") s.textContent = "All verdicts saved";
+  else if(kind==="error"){s.className="bad"; s.textContent = "Not saved"+(detail?(" ("+detail+")"):"")}
+  else s.textContent = "";
+  $("retryBtn").hidden = !(db && uid && canWrite!==false && unsavedCount()>0);
+}
+function renderState(){
+  var b = $("banner"), msg = "";
+  if(D.mode==="static") msg = "Your verdicts are saved in this browser only. When you finish, press Download my verdicts and send the file to the person who asked you to review. Clearing this site's data in your browser erases them.";
+  else if(db===null && D.dbChecked) msg = "This view cannot save to the shared record, so your verdicts stay in this browser. Use Copy my verdicts as CSV and send the result back.";
+  else if(canWrite===false) msg = "Your access is view-only, so verdicts cannot be saved. Ask the person who shared this page for Contributor access. You can still look and copy your verdicts as CSV.";
+  b.hidden = !msg; b.textContent = msg;
+  if(db && uid && canWrite!==false){ var n = unsavedCount(); if(n===0 && Object.keys(V).length) setSave("saved"); else if(n>0) setSave("error", n+" waiting") }
+}
+
+/* saving: one chained write at a time, own subtree verdicts/<id>/items/<registration> */
+function rowFor(p, v){return {registration_number:p.reg, phase:p.phase, verdict:v.verdict, notes:v.notes, reviewer:v.reviewer,
+  reviewed_at_utc:v.reviewed_at_utc, surface:D.surface||"artifact", image_seen:"naip:"+(p.naip_date||"unknown"), queue_build_id:D.queue_build_id}}
+function saveRemote(p){
+  if(!db || !uid || canWrite===false) return;
+  var v = V[p.reg]; if(!v) return;
+  setSave("saving");
+  chain = chain.then(function(){
+    var cur = V[p.reg]; if(!cur) return;
+    var jobs = Promise.resolve();
+    if(nameWritten !== cur.reviewer) jobs = db.doc("verdicts/"+uid).set({reviewer:cur.reviewer, updated_at:cur.reviewed_at_utc}).then(function(){nameWritten = cur.reviewer});
+    return jobs.then(function(){return db.doc("verdicts/"+uid+"/items/"+key(p)).set(rowFor(p,cur))})
+      .then(function(){cur.saved = true; persistLocal(); renderState()})
+      .catch(function(e){cur.saved = false; persistLocal(); setSave("error", e && e.code)});
+  });
+}
+function retryUnsaved(){P.forEach(function(p){if(V[p.reg] && !V[p.reg].saved) saveRemote(p)})}
+
+function commit(code){
+  var p = P[idx]; if(!p.have) return;
+  if(!reviewer()){ $("reviewer").focus(); $("toolmsg").textContent = "Enter your name first."; return }
+  V[p.reg] = {verdict:code, notes:$("notes").value, reviewer:reviewer(), reviewed_at_utc:new Date().toISOString(), saved:false};
+  persistLocal(); render(); saveRemote(p);
+  if(lsGet("tmpit-howto-seen")!=="1"){lsSet("tmpit-howto-seen","1"); $("howto").open = false}
+  if(code==="pit_off") $("notes").focus();
+}
+function saveNotes(){
+  var p = P[idx], v = V[p.reg];
+  if(v && v.notes !== $("notes").value){v.notes = $("notes").value; v.reviewed_at_utc = new Date().toISOString(); v.saved = false; persistLocal(); saveRemote(p)}
+}
+function go(i){ if(i<0||i>=P.length) return; saveNotes(); idx = i; render() }
+function nextUnreviewed(from){
+  for(var s=1;s<=P.length;s++){var j=(from+s)%P.length; if(!V[P[j].reg] && P[j].have) return j}
+  return -1;
+}
+function advance(){var j = nextUnreviewed(idx); if(j>=0) go(j); else $("toolmsg").textContent = "Every pit that has a photo now has your verdict."}
+
+function csvCell(s){s=String(s==null?"":s); if(/^[=+\-@]/.test(s)) s="'"+s; return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function buildCsv(){
+  var cols = ["registration_number","phase","verdict","notes","reviewer","reviewed_at_utc","surface","image_seen","queue_build_id"];
+  var rows = ["# built by the Pit Photo Review page; queue_build_id "+D.queue_build_id+"; asset "+D.asset, cols.join(",")];
+  P.forEach(function(p){var v=V[p.reg]; if(!v) return; var r=rowFor(p,v); rows.push(cols.map(function(c){return csvCell(r[c])}).join(","))});
+  return rows.join("\n")+"\n";
+}
+function downloadCsv(){
+  if(!Object.keys(V).length){$("toolmsg").textContent = "No verdicts yet."; return}
+  var d = new Date(), z = function(n){return String(n).padStart(2,"0")};
+  var stamp = d.getUTCFullYear()+z(d.getUTCMonth()+1)+z(d.getUTCDate())+"-"+z(d.getUTCHours())+z(d.getUTCMinutes());
+  var name = "verdicts_"+(reviewer()||"unnamed").replace(/[^A-Za-z0-9_-]+/g,"_")+"_"+stamp+".csv";
+  var blob = new Blob([buildCsv()],{type:"text/csv"}), a = el("a",{href:URL.createObjectURL(blob),download:name});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href)},0);
+  $("toolmsg").textContent = "Downloaded "+name+".";
+}
+function copyCsv(){
+  if(!Object.keys(V).length){$("toolmsg").textContent = "No verdicts yet."; return}
+  var text = buildCsv(), box = $("csvbox");
+  function showBox(){box.hidden=false; box.value=text; box.focus(); box.select(); $("toolmsg").textContent="Select all and copy."}
+  try{ navigator.clipboard.writeText(text).then(function(){$("toolmsg").textContent="Copied "+(text.split("\n").length-2)+" verdicts."}, showBox) }catch(e){ showBox() }
+}
+
+document.addEventListener("keydown", function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  var tag = (e.target.tagName||"").toLowerCase();
+  if(tag==="textarea"||tag==="input"){ if(e.key==="Escape"){e.target.blur(); saveNotes()} return }
+  var k = e.key;
+  if((k===" "||k==="Enter") && (tag==="button"||tag==="summary"||tag==="a")) return;
+  if(CODES[k]){commit(CODES[k]); e.preventDefault()}
+  else if(k===" "||k==="Enter"||k==="u"||k==="U"){advance(); e.preventDefault()}
+  else if(k==="ArrowRight"||k==="k"||k==="K"){go(idx+1); e.preventDefault()}
+  else if(k==="ArrowLeft"||k==="j"||k==="J"){go(idx-1); e.preventDefault()}
+  else if(k==="n"||k==="N"){$("notes").focus(); e.preventDefault()}
+  else if(k==="r"||k==="R"){ringOn=!ringOn; document.querySelectorAll(".ring").forEach(function(g){g.style.display=ringOn?"":"none"})}
+});
+$("notes").addEventListener("blur", saveNotes);
+$("prevBtn").onclick = function(){go(idx-1)};
+$("nextBtn").onclick = function(){go(idx+1)};
+$("nextUnBtn").onclick = advance;
+$("copyBtn").onclick = copyCsv;
+$("dlBtn").onclick = downloadCsv;
+if(D.mode==="static") $("dlBtn").hidden = false;
+$("retryBtn").onclick = retryUnsaved;
+$("frame").addEventListener("click", function(){this.classList.toggle("zoomed")});
+document.querySelectorAll(".meter").forEach(function(d){d.onclick=function(){
+  var ph = d.getAttribute("data-p"), first=-1, any=-1;
+  P.forEach(function(p,i){if(p.phase===ph){if(any<0) any=i; if(first<0 && !V[p.reg] && p.have) first=i}});
+  go(first>=0?first:any)}});
+var savedName = lsGet(LS_NAME); if(savedName) $("reviewer").value = savedName;
+if(lsGet("tmpit-howto-seen")==="1" || (window.matchMedia && window.matchMedia("(max-width:820px)").matches)) $("howto").open = false;
+$("reviewer").addEventListener("change", function(){lsSet(LS_NAME, reviewer())});
+$("prov").textContent = D.provenance;
+
+var start = nextUnreviewed(P.length-1); idx = start>=0 ? start : 0;
+render();
+
+/* the shared record lights up when the viewer grants it; the page works without it */
+(function connect(){
+  if(!(window.claude && window.claude.use)){D.dbChecked = true; renderState(); return}
+  Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(r){
+    db = r[0]; var user = r[1]; D.dbChecked = true;
+    if(!db){renderState(); return}
+    var idp = user && user.id ? user.id() : Promise.resolve(null);
+    var cw = user && user.can ? user.can("data.write") : null;
+    return Promise.resolve(idp).then(function(id){
+      uid = id; return Promise.resolve(cw);
+    }).then(function(w){
+      canWrite = (w===false) ? false : true;
+      if(!uid){db = null; renderState(); return}
+      return db.collection("verdicts/"+uid+"/items").get().then(function(snap){
+        snap.docs.forEach(function(d){
+          var x = d.data(); if(!x) return;
+          var p = P.filter(function(q){return q.reg===x.registration_number})[0]; if(!p) return;
+          var mine = V[p.reg];
+          if(!mine || (x.reviewed_at_utc||"") >= (mine.reviewed_at_utc||""))
+            V[p.reg] = {verdict:x.verdict, notes:x.notes||"", reviewer:x.reviewer||"", reviewed_at_utc:x.reviewed_at_utc||"", saved:true};
+        });
+        if(!reviewer()){var any = Object.keys(V).map(function(k){return V[k].reviewer}).filter(Boolean)[0]; if(any) $("reviewer").value = any}
+        nameWritten = reviewer();
+        persistLocal(); retryUnsaved(); render();
+      });
+    });
+  }).catch(function(){D.dbChecked = true; db = null; renderState()});
+})();
+})();
+</script>
+
+</body></html>
