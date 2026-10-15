@@ -69,6 +69,7 @@ dl.facts dd{margin:0;overflow-wrap:anywhere}
 dl.facts dd.reg{font-family:var(--mono);font-size:17px}
 .note{margin:10px 0 0;color:var(--warn)}
 a.earth{display:inline-block;margin-top:10px;color:var(--accent);font-weight:600}
+.verdict-rule{margin:12px 0 0;color:var(--ink);font-size:14px;line-height:1.45}
 #verdicts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px}
 #verdicts button{display:flex;gap:7px;align-items:center;min-width:0}
 #verdicts button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -96,10 +97,10 @@ footer p{margin:.4em 0;max-width:80ch}
 
   <details class="howto" id="howto" open>
     <summary>How to review (read first)</summary>
-    <p>Each pit is a registration filed with the Railroad Commission. Look at the aerial photo and say whether a pit is visible at the registered point, which is the crosshair at the centre. The yellow ring marks 60 m around it. You are recording what the photograph shows and nothing else: not what the pit holds, whether it is lined, or how it is run.</p>
+    <p>Each pit is a registration filed with the Railroad Commission. Look at the aerial photo and say whether a pit is visible within 60 m of the registered point. The crosshair marks the exact point; the yellow circle marks the surrounding 60 m. A pit need not cover the crosshair to count as inside the circle. You are recording what the photograph shows and nothing else: not what the pit holds, whether it is lined, or how it is run.</p>
     <dl>
-      <dt>1 pit</dt><dd>A pit is visible inside the ring.</dd>
-      <dt>2 pit off ring</dt><dd>A pit is visible outside the ring. Say which direction and roughly how far in the notes.</dd>
+      <dt>1 pit</dt><dd>Any part of a pit is inside the yellow circle, even if the crosshair lands beside it.</dd>
+      <dt>2 pit outside ring</dt><dd>The entire pit lies outside the yellow circle. Click its centre and note its direction and rough distance.</dd>
       <dt>3 pad</dt><dd>Cleared or disturbed ground, but no pit you can make out.</dd>
       <dt>4 none</dt><dd>Undisturbed ground.</dd>
       <dt>5 unclear</dt><dd>Cloud, shadow or a photo too poor to tell.</dd>
@@ -119,6 +120,7 @@ footer p{margin:.4em 0;max-width:80ch}
       <dl class="facts" id="facts"></dl>
       <div class="note" id="notice" hidden></div>
       <a class="earth" id="earth" target="_blank" rel="noopener noreferrer">Open this location in Google Earth</a>
+      <p class="verdict-rule">Crosshair beside the pit? Choose <b>1 pit</b> if any part of the pit lies inside the yellow circle. Choose <b>2 pit outside ring</b> only if the whole pit is beyond it.</p>
       <div id="verdicts"></div>
       <div id="markhint" hidden></div>
       <textarea id="notes" placeholder="Notes (optional)"></textarea>
@@ -159,7 +161,7 @@ var db = null, uid = null, canWrite = null, nameWritten = "", chain = Promise.re
 var $ = function(id){return document.getElementById(id)};
 var LS_V = "tmpit-art-"+D.queue_build_id, LS_NAME = "tmpit-reviewer";
 var CODES = {"1":"pit","2":"pit_off","3":"pad","4":"none","5":"unclear"};
-var LABEL = {pit:"pit","pit_off":"pit off ring",pad:"pad",none:"none",unclear:"unclear"};
+var LABEL = {pit:"pit","pit_off":"pit outside ring",pad:"pad",none:"none",unclear:"unclear"};
 var NS = "http://www.w3.org/2000/svg";
 
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
